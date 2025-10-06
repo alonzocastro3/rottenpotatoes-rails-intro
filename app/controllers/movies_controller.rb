@@ -6,29 +6,35 @@ class MoviesController < ApplicationController
     # will render app/views/movies/show.<extension> by default
   end
 
+  
   def index
     @all_ratings = Movie.all_ratings
     
+    # Retrieve sorting and filtering settings from the session or use defaults
+    @sort_by = session[:sort_by] || 'title'  # Default to sorting by title
+    @ratings_to_show = session[:ratings_to_show] || @all_ratings  # Default to showing all ratings
+  
+    # If new sorting settings are provided, update both @sort_by and session
+    if params[:sort_by]
+      @sort_by = params[:sort_by]
+      session[:sort_by] = @sort_by
+    end
+  
+    # If new filtering settings are provided, update both @ratings_to_show and session
     if params[:ratings]
       @ratings_to_show = params[:ratings].keys
-    else
+      session[:ratings_to_show] = @ratings_to_show
+    end
+    
+    # If no ratings are selected, display all movies
+    if @ratings_to_show.empty?
       @ratings_to_show = @all_ratings
     end
   
-    # Handle sorting by title or release_date
-    if params[:sort_by]
-      @sort_by = params[:sort_by]
-      if @sort_by == 'title'
-        @movies = Movie.with_ratings(@ratings_to_show).order(:title)
-      elsif @sort_by == 'release_date'
-        @movies = Movie.with_ratings(@ratings_to_show).order(:release_date)
-      else
-        @movies = Movie.with_ratings(@ratings_to_show)
-      end
-    else
-      @movies = Movie.with_ratings(@ratings_to_show)
-    end
+    # Retrieve and sort movies based on the selected ratings and sort_by settings
+    @movies = Movie.with_ratings(@ratings_to_show).order(@sort_by)
   end
+  
   
   
 
