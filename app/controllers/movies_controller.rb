@@ -8,17 +8,28 @@ class MoviesController < ApplicationController
 
   def index
     @all_ratings = Movie.all_ratings
-  
+    
     if params[:ratings]
-      # If user has selected checkboxes, filter movies by selected ratings
       @ratings_to_show = params[:ratings].keys
     else
-      # If no ratings selected, show all ratings
       @ratings_to_show = @all_ratings
     end
   
-    @movies = Movie.with_ratings(@ratings_to_show)
+    # Handle sorting by title or release_date
+    if params[:sort_by]
+      @sort_by = params[:sort_by]
+      if @sort_by == 'title'
+        @movies = Movie.with_ratings(@ratings_to_show).order(:title)
+      elsif @sort_by == 'release_date'
+        @movies = Movie.with_ratings(@ratings_to_show).order(:release_date)
+      else
+        @movies = Movie.with_ratings(@ratings_to_show)
+      end
+    else
+      @movies = Movie.with_ratings(@ratings_to_show)
+    end
   end
+  
   
 
   def new
